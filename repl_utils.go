@@ -32,13 +32,13 @@ func cleanInput(text string) []string {
 	return strings.Fields(strings.ToLower(text))
 }
 
-func commandExit() error {
+func commandExit(conf *Config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func helpCommand() error {
+func helpCommand(conf *Config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -50,7 +50,7 @@ func helpCommand() error {
 	return nil
 }
 
-func mapCommand() error {
+func mapCommand(conf *Config) error {
 
 	return nil
 }

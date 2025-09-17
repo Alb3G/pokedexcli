@@ -24,7 +24,11 @@ func main() {
 			continue
 		}
 
-		if err := cliCommandStr.callback(); err != nil {
+		conf := &Config{}
+
+		err := cliCommandStr.callback(conf)
+
+		if err != nil {
 			fmt.Println(err)
 		}
 	}

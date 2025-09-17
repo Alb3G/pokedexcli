@@ -3,7 +3,7 @@ package main
 type CliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(conf *Config) error
 }
 
 type Config struct {
