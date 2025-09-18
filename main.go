@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Alb3G/pokedexcli/types"
+	"github.com/Alb3G/pokedexcli/internal/types"
 )
 
 func main() {

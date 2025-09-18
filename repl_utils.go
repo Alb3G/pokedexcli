@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Alb3G/pokedexcli/api"
-	"github.com/Alb3G/pokedexcli/types"
+	"github.com/Alb3G/pokedexcli/internal/api"
+	"github.com/Alb3G/pokedexcli/internal/types"
 )
 
 var supportedCommands map[string]types.CliCommand
@@ -27,6 +27,11 @@ func init() {
 			Name:        "map",
 			Description: "Displays 20 location areas from Pokemon World",
 			Callback:    mapCommand,
+		},
+		"mapb": {
+			Name:        "mapb",
+			Description: "Displays the 20 previous location areas from Pokemon World",
+			Callback:    mapBackCommand,
 		},
 	}
 }
@@ -67,8 +72,27 @@ func mapCommand(conf *types.Config) error {
 	}
 
 	conf.NextUrl = locationArea.Next
+	conf.PreviousUrl = locationArea.Previous
 	for _, result := range locationArea.Results {
 		fmt.Println(result.Name)
+	}
+
+	return nil
+}
+
+func mapBackCommand(conf *types.Config) error {
+	if conf.PreviousUrl == "" {
+		fmt.Println("you're on the first page")
+	} else {
+		locationArea, err := api.GetLocationAreas(conf.PreviousUrl)
+		if err != nil {
+			return err
+		}
+
+		conf.PreviousUrl = locationArea.Previous
+		for _, result := range locationArea.Results {
+			fmt.Println(result.Name)
+		}
 	}
 
 	return nil

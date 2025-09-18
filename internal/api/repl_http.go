@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Alb3G/pokedexcli/types"
+	"github.com/Alb3G/pokedexcli/internal/types"
 )
 
 func GetLocationAreas(url string) (types.LocationArea, error) {
