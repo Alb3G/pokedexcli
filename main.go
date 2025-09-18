@@ -4,11 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	"github.com/Alb3G/pokedexcli/types"
 )
 
 func main() {
 	// Wait for user input
 	scanner := bufio.NewScanner(os.Stdin)
+
+	conf := &types.Config{
+		PreviousUrl: "",
+		NextUrl:     "",
+	}
 
 	for {
 		fmt.Print("pokedex > ")
@@ -24,9 +31,7 @@ func main() {
 			continue
 		}
 
-		conf := &Config{}
-
-		err := cliCommandStr.callback(conf)
+		err := cliCommandStr.Callback(conf)
 
 		if err != nil {
 			fmt.Println(err)
