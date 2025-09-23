@@ -33,6 +33,11 @@ func init() {
 			Description: "Displays the 20 previous location areas from Pokemon World",
 			Callback:    mapBackCommand,
 		},
+		"explore": {
+			Name:        "explore",
+			Description: "Displays all the pokemons found in an especific location",
+			Callback:    exploreCommand,
+		},
 	}
 }
 
@@ -40,13 +45,13 @@ func cleanInput(text string) []string {
 	return strings.Fields(strings.ToLower(text))
 }
 
-func commandExit(conf *internal.Config) error {
+func commandExit(conf *internal.Config, args []string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func helpCommand(conf *internal.Config) error {
+func helpCommand(conf *internal.Config, args []string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -58,7 +63,7 @@ func helpCommand(conf *internal.Config) error {
 	return nil
 }
 
-func mapCommand(conf *internal.Config) error {
+func mapCommand(conf *internal.Config, args []string) error {
 	locationArea, err := conf.Client.GetLocationAreas(conf.NextUrl)
 	if err != nil {
 		return err
@@ -74,7 +79,7 @@ func mapCommand(conf *internal.Config) error {
 	return nil
 }
 
-func mapBackCommand(conf *internal.Config) error {
+func mapBackCommand(conf *internal.Config, args []string) error {
 	if conf.PreviousUrl == nil {
 		return errors.New("you're on the first page")
 	}
@@ -88,6 +93,27 @@ func mapBackCommand(conf *internal.Config) error {
 	conf.PreviousUrl = locationArea.Previous
 	for _, result := range locationArea.Results {
 		fmt.Println(result.Name)
+	}
+
+	return nil
+}
+
+func exploreCommand(conf *internal.Config, args []string) error {
+	fmt.Printf("Exploring %s...\n", args[0])
+
+	res, err := conf.Client.GetPokemonsFromLocation(&args[0])
+	if err != nil {
+		return errors.New("unknown location name")
+	}
+
+	if len(res.PokemonEncounters) == 0 {
+		fmt.Println("No pokemons encountered in this area")
+		return nil
+	}
+
+	for _, encounter := range res.PokemonEncounters {
+		fmt.Print(" - ")
+		fmt.Println(encounter.Pokemon.Name)
 	}
 
 	return nil

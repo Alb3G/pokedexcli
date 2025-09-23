@@ -16,16 +16,16 @@ func startRepl(conf *internal.Config) {
 
 		scanner.Scan()
 
-		command := cleanInput(scanner.Text())
+		input := cleanInput(scanner.Text())
 
-		cliCommandStr, isSupported := supportedCommands[command[0]]
+		command, isSupported := supportedCommands[input[0]]
 
 		if !isSupported {
 			fmt.Println("Unknown command")
 			continue
 		}
 
-		err := cliCommandStr.Callback(conf)
+		err := command.Callback(conf, input[1:])
 
 		if err != nil {
 			fmt.Println(err)

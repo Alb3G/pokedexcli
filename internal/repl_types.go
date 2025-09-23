@@ -8,7 +8,7 @@ import (
 type CliCommand struct {
 	Name        string
 	Description string
-	Callback    func(conf *Config) error
+	Callback    func(conf *Config, args []string) error
 }
 
 type Config struct {
@@ -25,6 +25,22 @@ type LocationArea struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"results"`
+}
+
+type Pokemon struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type PokemonEncounter struct {
+	Pokemon        Pokemon `json:"pokemon"`
+	VersionDetails []any   `json:"version_details"`
+}
+
+type PokemonEncounterResp struct {
+	Id                int                `json:"id"`
+	Name              string             `json:"name"`
+	PokemonEncounters []PokemonEncounter `json:"pokemon_encounters"`
 }
 
 type Cache struct {
