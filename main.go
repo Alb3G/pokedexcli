@@ -1,40 +1,17 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"os"
+	"time"
 
-	"github.com/Alb3G/pokedexcli/internal/types"
+	"github.com/Alb3G/pokedexcli/internal"
 )
 
 func main() {
-	// Wait for user input
-	scanner := bufio.NewScanner(os.Stdin)
-
-	conf := &types.Config{
-		PreviousUrl: "",
-		NextUrl:     "",
+	// Initialize Client
+	client := internal.NewClient(5*time.Second, 5*time.Minute)
+	conf := &internal.Config{
+		Client: client,
 	}
 
-	for {
-		fmt.Print("pokedex > ")
-
-		scanner.Scan()
-
-		command := cleanInput(scanner.Text())
-
-		cliCommandStr, isSupported := supportedCommands[command[0]]
-
-		if !isSupported {
-			fmt.Println("Unknown command")
-			continue
-		}
-
-		err := cliCommandStr.Callback(conf)
-
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
+	startRepl(conf)
 }

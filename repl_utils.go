@@ -1,18 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/Alb3G/pokedexcli/internal/api"
-	"github.com/Alb3G/pokedexcli/internal/types"
+	"github.com/Alb3G/pokedexcli/internal"
 )
 
-var supportedCommands map[string]types.CliCommand
+var supportedCommands map[string]internal.CliCommand
 
 func init() {
-	supportedCommands = map[string]types.CliCommand{
+	supportedCommands = map[string]internal.CliCommand{
 		"exit": {
 			Name:        "exit",
 			Description: "Exit the Pokedex",
@@ -40,13 +40,13 @@ func cleanInput(text string) []string {
 	return strings.Fields(strings.ToLower(text))
 }
 
-func commandExit(conf *types.Config) error {
+func commandExit(conf *internal.Config) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func helpCommand(conf *types.Config) error {
+func helpCommand(conf *internal.Config) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -58,15 +58,28 @@ func helpCommand(conf *types.Config) error {
 	return nil
 }
 
-func mapCommand(conf *types.Config) error {
-	var baseUrl string
-	if conf.NextUrl == "" {
-		baseUrl = "https://pokeapi.co/api/v2/location-area/"
-	} else {
-		baseUrl = conf.NextUrl
+func mapCommand(conf *internal.Config) error {
+	locationArea, err := conf.Client.GetLocationAreas(conf.NextUrl)
+	if err != nil {
+		return err
 	}
 
-	locationArea, err := api.GetLocationAreas(baseUrl)
+	conf.NextUrl = locationArea.Next
+	conf.PreviousUrl = locationArea.Previous
+
+	for _, result := range locationArea.Results {
+		fmt.Println(result.Name)
+	}
+
+	return nil
+}
+
+func mapBackCommand(conf *internal.Config) error {
+	if conf.PreviousUrl == nil {
+		return errors.New("you're on the first page")
+	}
+
+	locationArea, err := conf.Client.GetLocationAreas(conf.PreviousUrl)
 	if err != nil {
 		return err
 	}
@@ -75,24 +88,6 @@ func mapCommand(conf *types.Config) error {
 	conf.PreviousUrl = locationArea.Previous
 	for _, result := range locationArea.Results {
 		fmt.Println(result.Name)
-	}
-
-	return nil
-}
-
-func mapBackCommand(conf *types.Config) error {
-	if conf.PreviousUrl == "" {
-		fmt.Println("you're on the first page")
-	} else {
-		locationArea, err := api.GetLocationAreas(conf.PreviousUrl)
-		if err != nil {
-			return err
-		}
-
-		conf.PreviousUrl = locationArea.Previous
-		for _, result := range locationArea.Results {
-			fmt.Println(result.Name)
-		}
 	}
 
 	return nil
