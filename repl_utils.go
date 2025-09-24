@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strings"
 
@@ -37,6 +38,11 @@ func init() {
 			Name:        "explore",
 			Description: "Displays all the pokemons found in an especific location",
 			Callback:    exploreCommand,
+		},
+		"catch": {
+			Name:        "catch",
+			Description: "Catch a pokemon specified by argument",
+			Callback:    catchCommand,
 		},
 	}
 }
@@ -115,6 +121,48 @@ func exploreCommand(conf *internal.Config, args []string) error {
 		fmt.Print(" - ")
 		fmt.Println(encounter.Pokemon.Name)
 	}
+
+	return nil
+}
+
+func catchPokemonProbability(name string, baseExperience int) internal.CatchProbability {
+	successPercentaje := 0.7
+	userProb := rand.IntN(baseExperience)
+	catchSuccessRate := int(float64(baseExperience) * successPercentaje)
+	catchMsg := fmt.Sprintf("%s escaped!", name)
+
+	if userProb < catchSuccessRate {
+		return internal.CatchProbability{
+			Probability: userProb,
+			IsCatched:   false,
+			CatchedMsg:  catchMsg,
+		}
+	}
+
+	catchMsg = fmt.Sprintf("%s was caught!", name)
+
+	return internal.CatchProbability{
+		Probability: userProb,
+		IsCatched:   true,
+		CatchedMsg:  catchMsg,
+	}
+}
+
+func catchCommand(conf *internal.Config, args []string) error {
+	fmt.Printf("Throwing a Pokeball at %s...\n", args[0])
+
+	pokemon, err := conf.Client.GetPokemonByName(&args[0])
+	if err != nil {
+		return errors.New("unknown pokemon name")
+	}
+
+	cp := catchPokemonProbability(pokemon.Name, pokemon.BaseExperience)
+
+	if !cp.IsCatched {
+		return errors.New(cp.CatchedMsg)
+	}
+
+	fmt.Println(cp.CatchedMsg)
 
 	return nil
 }

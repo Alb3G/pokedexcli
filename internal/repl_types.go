@@ -28,8 +28,15 @@ type LocationArea struct {
 }
 
 type Pokemon struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	BaseExperience int    `json:"base_experience"`
+	Id             int    `json:"id"`
+	Name           string `json:"name"`
+}
+
+type CatchProbability struct {
+	Probability int
+	IsCatched   bool
+	CatchedMsg  string
 }
 
 type PokemonEncounter struct {
