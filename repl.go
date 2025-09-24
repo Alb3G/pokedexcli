@@ -10,7 +10,6 @@ import (
 
 func startRepl(conf *internal.Config) {
 	scanner := bufio.NewScanner(os.Stdin)
-
 	for {
 		fmt.Print("pokedex > ")
 

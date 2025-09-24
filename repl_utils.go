@@ -1,49 +1,42 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"math/rand/v2"
-	"os"
 	"strings"
 
 	"github.com/Alb3G/pokedexcli/internal"
 )
 
-var supportedCommands map[string]internal.CliCommand
+func getDifficulty(baseExperience int) float64 {
+	switch {
+	case baseExperience <= 50:
+		return 0.4
+	case baseExperience <= 110:
+		return 0.6
+	default:
+		return 0.8
+	}
+}
 
-func init() {
-	supportedCommands = map[string]internal.CliCommand{
-		"exit": {
-			Name:        "exit",
-			Description: "Exit the Pokedex",
-			Callback:    commandExit,
-		},
-		"help": {
-			Name:        "help",
-			Description: "Displays a help message",
-			Callback:    helpCommand,
-		},
-		"map": {
-			Name:        "map",
-			Description: "Displays 20 location areas from Pokemon World",
-			Callback:    mapCommand,
-		},
-		"mapb": {
-			Name:        "mapb",
-			Description: "Displays the 20 previous location areas from Pokemon World",
-			Callback:    mapBackCommand,
-		},
-		"explore": {
-			Name:        "explore",
-			Description: "Displays all the pokemons found in an especific location",
-			Callback:    exploreCommand,
-		},
-		"catch": {
-			Name:        "catch",
-			Description: "Catch a pokemon specified by argument",
-			Callback:    catchCommand,
-		},
+func getCatchMessage(name string, isCaught bool) string {
+	if isCaught {
+		return fmt.Sprintf("%s was caught!", name)
+	}
+	return fmt.Sprintf("%s escaped!", name)
+}
+
+func catchPokemonProbability(name string, baseExperience int) internal.CatchProbability {
+	difficulty := getDifficulty(baseExperience)
+	userProb := rand.IntN(baseExperience)
+	catchSuccessRate := int(float64(baseExperience) * difficulty)
+	isCaught := userProb < catchSuccessRate
+	catchMsg := getCatchMessage(name, isCaught)
+
+	return internal.CatchProbability{
+		Probability: userProb,
+		IsCaught:    isCaught,
+		CatchedMsg:  catchMsg,
 	}
 }
 
@@ -51,118 +44,18 @@ func cleanInput(text string) []string {
 	return strings.Fields(strings.ToLower(text))
 }
 
-func commandExit(conf *internal.Config, args []string) error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-	return nil
-}
+func showPokemonFromPokedex(pokemon internal.Pokemon) {
+	fmt.Printf("Name: %v\n", pokemon.Name)
+	fmt.Printf("Height: %v\n", pokemon.Height)
+	fmt.Printf("Weight: %v\n", pokemon.Weight)
+	fmt.Println("Stats:")
 
-func helpCommand(conf *internal.Config, args []string) error {
-	fmt.Println("Welcome to the Pokedex!")
-	fmt.Println("Usage:")
-	fmt.Println()
-
-	for key, value := range supportedCommands {
-		fmt.Printf("%v: %v\n", key, value.Description)
+	for _, stat := range pokemon.Stats {
+		fmt.Printf(" - %v: %v\n", stat.Stat.Name, stat.BaseStat)
 	}
 
-	return nil
-}
-
-func mapCommand(conf *internal.Config, args []string) error {
-	locationArea, err := conf.Client.GetLocationAreas(conf.NextUrl)
-	if err != nil {
-		return err
+	fmt.Println("Types:")
+	for _, types := range pokemon.Types {
+		fmt.Printf(" - %v\n", types.Type.Name)
 	}
-
-	conf.NextUrl = locationArea.Next
-	conf.PreviousUrl = locationArea.Previous
-
-	for _, result := range locationArea.Results {
-		fmt.Println(result.Name)
-	}
-
-	return nil
-}
-
-func mapBackCommand(conf *internal.Config, args []string) error {
-	if conf.PreviousUrl == nil {
-		return errors.New("you're on the first page")
-	}
-
-	locationArea, err := conf.Client.GetLocationAreas(conf.PreviousUrl)
-	if err != nil {
-		return err
-	}
-
-	conf.NextUrl = locationArea.Next
-	conf.PreviousUrl = locationArea.Previous
-	for _, result := range locationArea.Results {
-		fmt.Println(result.Name)
-	}
-
-	return nil
-}
-
-func exploreCommand(conf *internal.Config, args []string) error {
-	fmt.Printf("Exploring %s...\n", args[0])
-
-	res, err := conf.Client.GetPokemonsFromLocation(&args[0])
-	if err != nil {
-		return errors.New("unknown location name")
-	}
-
-	if len(res.PokemonEncounters) == 0 {
-		fmt.Println("No pokemons encountered in this area")
-		return nil
-	}
-
-	for _, encounter := range res.PokemonEncounters {
-		fmt.Print(" - ")
-		fmt.Println(encounter.Pokemon.Name)
-	}
-
-	return nil
-}
-
-func catchPokemonProbability(name string, baseExperience int) internal.CatchProbability {
-	successPercentaje := 0.7
-	userProb := rand.IntN(baseExperience)
-	catchSuccessRate := int(float64(baseExperience) * successPercentaje)
-	catchMsg := fmt.Sprintf("%s escaped!", name)
-
-	if userProb < catchSuccessRate {
-		return internal.CatchProbability{
-			Probability: userProb,
-			IsCatched:   false,
-			CatchedMsg:  catchMsg,
-		}
-	}
-
-	catchMsg = fmt.Sprintf("%s was caught!", name)
-
-	return internal.CatchProbability{
-		Probability: userProb,
-		IsCatched:   true,
-		CatchedMsg:  catchMsg,
-	}
-}
-
-func catchCommand(conf *internal.Config, args []string) error {
-	fmt.Printf("Throwing a Pokeball at %s...\n", args[0])
-
-	pokemon, err := conf.Client.GetPokemonByName(&args[0])
-	if err != nil {
-		return errors.New("unknown pokemon name")
-	}
-
-	cp := catchPokemonProbability(pokemon.Name, pokemon.BaseExperience)
-
-	if !cp.IsCatched {
-		return errors.New(cp.CatchedMsg)
-	}
-
-	fmt.Println(cp.CatchedMsg)
-
-	return nil
 }

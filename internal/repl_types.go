@@ -28,14 +28,39 @@ type LocationArea struct {
 }
 
 type Pokemon struct {
-	BaseExperience int    `json:"base_experience"`
 	Id             int    `json:"id"`
+	BaseExperience int    `json:"base_experience"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
 	Name           string `json:"name"`
+
+	Stats []struct {
+		BaseStat int  `json:"base_stat"`
+		Effort   int  `json:"effort"`
+		Stat     Stat `json:"stat"`
+	} `json:"stats"`
+
+	Types []struct {
+		Slot int `json:"slot"`
+		Type struct {
+			Name string `json:"name"`
+			Url  string `json:"url"`
+		} `json:"type"`
+	} `json:"types"`
+}
+
+type Stat struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+type Pokedex struct {
+	Data map[string]Pokemon
 }
 
 type CatchProbability struct {
 	Probability int
-	IsCatched   bool
+	IsCaught    bool
 	CatchedMsg  string
 }
 
