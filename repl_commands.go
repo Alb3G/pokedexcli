@@ -43,9 +43,14 @@ func init() {
 			Callback:    catchCommand,
 		},
 		"inspect": {
+			Name:        "inspect",
+			Description: "Display a pokemon stats",
+			Callback:    inspectCommand,
+		},
+		"pokedex": {
 			Name:        "catch",
 			Description: "Catch a pokemon specified by argument",
-			Callback:    inspectCommand,
+			Callback:    pokedexCommand,
 		},
 	}
 }
@@ -158,5 +163,11 @@ func inspectCommand(conf *internal.Config, args []string) error {
 
 	showPokemonFromPokedex(pokemon)
 
+	return nil
+}
+
+func pokedexCommand(conf *internal.Config, args []string) error {
+	fmt.Println("Your Pokedex:")
+	printPokedex(*internal.GlobalPokedex)
 	return nil
 }

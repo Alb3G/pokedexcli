@@ -59,3 +59,10 @@ func showPokemonFromPokedex(pokemon internal.Pokemon) {
 		fmt.Printf(" - %v\n", types.Type.Name)
 	}
 }
+
+func printPokedex(pokedex internal.Pokedex) {
+	for _, v := range pokedex.Data {
+		fmt.Print(" - ")
+		fmt.Println(v.Name)
+	}
+}
